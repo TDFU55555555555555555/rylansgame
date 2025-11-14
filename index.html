@@ -174,7 +174,8 @@
     <div id="fullscreenModal" class="hidden fullscreen-player-container">
         <div class="p-3 flex justify-between items-center bg-gray-900 border-b border-gray-700 shadow-lg">
             <h3 id="fullscreenTitle" class="text-xl font-bold text-white"></h3>
-            <button onclick="exitFullscreen()" class="p-2 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition duration-200" title="Exit Fullscreen">
+            <!-- Updated the onclick to call the new, non-conflicting function -->
+            <button onclick="closeFullscreenModal()" class="p-2 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition duration-200" title="Exit Fullscreen">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
@@ -451,7 +452,8 @@
             fullscreenModal.classList.remove('hidden');
         };
 
-        window.exitFullscreen = () => {
+        // Custom function to close the modal, renamed to avoid conflict with native document.exitFullscreen()
+        window.closeFullscreenModal = () => {
             fullscreenModal.classList.add('hidden');
             fullscreenPlayer.src = 'about:blank'; // Clear the modal iframe
         };
