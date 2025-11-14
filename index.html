@@ -254,8 +254,10 @@
         // --- Firestore Operations ---
 
         const getProjectCollectionRef = () => {
-            // Private data path: /artifacts/{appId}/users/{userId}/{collectionName}
-            return collection(db, 'artifacts', APP_ID, 'users', userId, COLLECTION_NAME);
+            // UPDATED: Changed path from private to public/shared:
+            // Old: /artifacts/{appId}/users/{userId}/{collectionName}
+            // New: /artifacts/{appId}/public/data/{collectionName}
+            return collection(db, 'artifacts', APP_ID, 'public', 'data', COLLECTION_NAME);
         };
 
         const setupProjectsListener = () => {
