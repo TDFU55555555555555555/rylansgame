@@ -9,17 +9,20 @@
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Custom styles for fullscreen player and aesthetics */
+        /* Custom styles for fullscreen player and aesthetics - BEIGE / STONE THEME */
         :root {
-            --primary-color: #7c3aed; /* Violet 600 */
+            --primary-color: #705741; /* Deep Stone Brown - Accent */
+            --light-primary: #B8A99B; /* Muted Light Brown */
+            --dark-background: #F0EAD6; /* Creamy Beige - Main Background */
+            --medium-background: #E0D8C8; /* Slightly Darker Beige - Container Background */
         }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1f2937; /* Darker gray background */
+            background-color: var(--dark-background); 
             min-height: 100vh;
         }
         .container-bg {
-            background-color: #374151; /* Medium gray for the main container */
+            background-color: var(--medium-background); 
         }
         .project-player-area {
             height: 400px; /* Default height for the iframe container */
@@ -37,7 +40,7 @@
             width: 100%;
             height: 100%;
             z-index: 50;
-            background-color: rgba(0, 0, 0, 0.95);
+            background-color: rgba(51, 51, 51, 0.95); /* Dark overlay for contrast */
             display: flex;
             flex-direction: column;
         }
@@ -51,131 +54,295 @@
             width: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #374151;
+            background: #D4C9BD; /* Light track */
         }
         ::-webkit-scrollbar-thumb {
-            background: #9ca3af;
+            background: var(--light-primary);
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #7c3aed;
+            background: var(--primary-color);
+        }
+        /* Style for the tab buttons */
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        .tag-chip {
+            transition: background-color 0.2s;
+            user-select: none;
+        }
+        .tab-button.active {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(112, 87, 65, 0.6); /* Stone shadow glow */
+        }
+        .tab-button:not(.active) {
+            background-color: #D4C9BD; /* Light Gray/Tan */
+            color: #333333; /* Dark text */
+        }
+        .tab-button:not(.active):hover {
+            background-color: var(--light-primary); 
+            color: white;
         }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
     <!-- Passcode Authentication Screen (HUB ACCESS) -->
-    <div id="authScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 transition-opacity duration-300">
-        <div class="bg-gray-700 p-8 rounded-xl shadow-2xl w-96 max-w-sm">
-            <h2 class="text-3xl font-extrabold text-white mb-6 text-center">Project Hub Access</h2>
-            <p class="text-gray-300 mb-4 text-center">Enter the secret passcode to unlock your hub.</p>
+    <div id="authScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-300/90 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-96 max-w-sm border border-stone-400">
+            <h2 class="text-3xl font-extrabold text-gray-900 mb-6 text-center">Project Hub Access</h2>
+            <p class="text-gray-700 mb-4 text-center">Enter the secret passcode to unlock your vault.</p>
             <form id="passcodeForm" onsubmit="handlePasscode(event)">
-                <input type="password" id="passcodeInput" class="w-full p-3 mb-4 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:ring-violet-500 focus:border-violet-500" placeholder="Enter your four-digit passcode" required>
-                <button type="submit" class="w-full py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-lg transition duration-200 shadow-md">Enter Hub</button>
+                <input type="password" id="passcodeInput" class="w-full p-3 mb-4 rounded-lg bg-gray-200 text-gray-900 placeholder-gray-500 focus:ring-stone-600 focus:border-stone-600 border border-gray-300" placeholder="Enter your secret key" required>
+                <button type="submit" class="w-full py-3 bg-stone-600 hover:bg-stone-700 text-white font-bold rounded-lg transition duration-200 shadow-md">Enter Vault</button>
             </form>
-            <p id="passcodeError" class="text-red-400 text-center mt-4 hidden">Incorrect passcode. Try again!</p>
+            <p id="passcodeError" class="text-red-600 text-center mt-4 hidden">Key rejected. Try again!</p>
         </div>
     </div>
 
     <!-- Main Application Container (Hidden until authenticated) -->
-    <div id="appContainer" class="max-w-7xl mx-auto container-bg rounded-2xl shadow-2xl p-4 md:p-8 hidden">
-        <h1 class="text-4xl font-black text-white mb-2 text-center">
+    <div id="appContainer" class="max-w-7xl mx-auto container-bg rounded-2xl shadow-2xl p-4 md:p-8 hidden border-4 border-stone-400">
+        <h1 class="text-4xl font-black text-gray-900 mb-2 text-center">
             Rylan's Personal Project Hub
         </h1>
-        <p class="text-gray-400 text-center mb-6">Local Storage - Your projects are saved here only</p>
+        <p class="text-gray-700 text-center mb-6">Local Storage - Your projects are saved here only</p>
 
 
         <!-- Global Status and Error Messages -->
-        <div id="statusMessage" class="hidden p-3 mb-6 bg-violet-800 text-white rounded-lg font-medium shadow-lg"></div>
+        <div id="statusMessage" class="hidden p-3 mb-6 bg-stone-800 text-white rounded-lg font-medium shadow-lg"></div>
 
-        <!-- Project Player Area -->
-        <div class="mb-8 p-4 bg-gray-800 rounded-xl shadow-xl">
-            <div class="flex justify-between items-center mb-3">
-                <h2 class="text-2xl font-bold text-white">Project Player Area</h2>
-                <div class="flex items-center space-x-2">
-                    <button id="fullscreenButton" onclick="toggleFullscreen()" class="p-2 rounded-full bg-gray-700 text-white hover:bg-violet-600 transition duration-200" title="Go Fullscreen">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
-                    </button>
-                    <span id="currentProjectTitle" class="text-gray-400 font-medium italic">No project loaded</span>
+        <!-- Navigation/View Switcher -->
+        <div class="mb-8 flex space-x-4 border-b border-stone-400 pb-4">
+            <button id="hubNavButton" onclick="switchView('hub')" class="tab-button active">
+                Hub
+            </button>
+            <button id="adminNavButton" onclick="switchView('admin')" class="tab-button">
+                Admin Panel <span id="adminLockIcon">🔒</span>
+            </button>
+            <!-- NEW: Dev Info Button -->
+            <button id="devNavButton" onclick="switchView('dev')" class="tab-button">
+                Dev Info 💻
+            </button>
+            <!-- NEW: Chat Button -->
+            <button id="chatNavButton" onclick="switchView('chat')" class="tab-button">
+                Community Chat 💬
+            </button>
+        </div>
+
+        <!-- --- HUB VIEW (Default Page) --- -->
+        <div id="hubView">
+            
+            <!-- Project Player Area -->
+            <div class="mb-8 p-4 bg-stone-100 rounded-xl shadow-xl">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2 sm:mb-0">Project Player Chamber</h2>
+                    <div class="flex items-center space-x-2">
+                        <button id="fullscreenButton" onclick="toggleFullscreen()" class="p-2 rounded-full bg-stone-300 text-stone-800 hover:bg-stone-400 transition duration-200" title="Go Fullscreen">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                        </button>
+                        <span id="currentProjectTitle" class="text-gray-600 font-medium italic">No project loaded</span>
+                    </div>
+                </div>
+                <div id="projectPlayerContainer" class="project-player-area rounded-lg overflow-hidden border-4 border-stone-400 shadow-inner">
+                    <iframe id="projectPlayer" class="project-player-iframe" src="about:blank"></iframe>
                 </div>
             </div>
-            <div id="projectPlayerContainer" class="project-player-area rounded-lg overflow-hidden border-4 border-gray-700 shadow-inner">
-                <iframe id="projectPlayer" class="project-player-iframe" src="about:blank"></iframe>
+            
+            <!-- Project Management Panel -->
+            <div id="managementPanel" class="mb-8 p-6 bg-stone-100 rounded-xl border-4 border-stone-500 shadow-2xl">
+                <h2 class="text-2xl font-bold text-stone-700 mb-4">Project Management Panel</h2>
+                <form id="addProjectForm">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Name Input -->
+                        <div class="md:col-span-1">
+                            <label for="projectName" class="block text-sm font-medium text-gray-700 mb-1">Project Title</label>
+                            <input type="text" id="projectName" class="w-full p-3 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-stone-600 focus:border-stone-600 border border-gray-300" placeholder="e.g., Shadow Runner" required>
+                        </div>
+
+                        <!-- URL Input -->
+                        <div class="md:col-span-2">
+                            <label for="projectUrl" class="block text-sm font-medium text-gray-700 mb-1">Project URL (Must start with http:// or https://)</label>
+                            <input type="url" id="projectUrl" class="w-full p-3 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-stone-600 focus:border-stone-600 border border-gray-300" placeholder="e.g., https://secret-vault.com/project-name" required>
+                        </div>
+                        
+                        <!-- Icon Input (NEW) -->
+                        <div>
+                            <label for="projectIcon" class="block text-sm font-medium text-gray-700 mb-1">Icon/Emoji (Optional)</label>
+                            <input type="text" id="projectIcon" class="w-full p-3 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-stone-600 focus:border-stone-600 border border-gray-300" placeholder="e.g., 👾 or T">
+                        </div>
+
+                        <!-- Tags Input (NEW) -->
+                        <div class="md:col-span-2">
+                            <label for="projectTags" class="block text-sm font-medium text-gray-700 mb-1">Tags (Comma-separated, e.g., game, tool, code)</label>
+                            <input type="text" id="projectTags" class="w-full p-3 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-stone-600 focus:border-stone-600 border border-gray-300" placeholder="game, utility, javascript">
+                        </div>
+
+                        <!-- Description Input -->
+                        <div class="md:col-span-3">
+                            <label for="projectDescription" class="block text-sm font-medium text-gray-700 mb-1">Description (What is it?)</label>
+                            <textarea id="projectDescription" rows="2" class="w-full p-3 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-stone-600 focus:border-stone-600 border border-gray-300" placeholder="A brief summary of what the project does." required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <button type="submit" id="addProjectButton" class="w-full py-3 bg-stone-600 text-white font-bold rounded-lg transition duration-200 shadow-lg hover:bg-stone-700">
+                            Add Project to Library
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Search and Filter Controls (NEW) -->
+            <div class="mb-6 p-4 bg-stone-100 rounded-xl shadow-inner border border-stone-300">
+                <h3 class="text-xl font-bold text-gray-800 mb-3">Filter & Search</h3>
+                <!-- Search Input -->
+                <input type="text" id="searchBar" oninput="handleSearch()" class="w-full p-3 mb-4 rounded-lg bg-white text-gray-900 border border-gray-300 focus:ring-stone-600 focus:border-stone-600" placeholder="Quick search by title or description...">
+                
+                <!-- Tag Filters -->
+                <div id="tagFilterContainer" class="flex flex-wrap gap-2 pt-2 border-t border-stone-200">
+                    <span class="text-gray-600 text-sm italic py-1">Click a tag below to filter:</span>
+                </div>
+            </div>
+
+            <!-- Projects List Area -->
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Your Project Library</h2>
+            <div id="projectsList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Project Cards will be inserted here -->
+                <p id="loadingIndicator" class="text-gray-700 col-span-full">Loading your projects...</p>
+            </div>
+
+        </div>
+
+        <!-- --- ADMIN VIEW (New Page) --- -->
+        <div id="adminView" class="hidden">
+            <h2 class="text-3xl font-bold text-stone-700 mb-6 border-b border-stone-400 pb-2">Admin Panel & Forbidden Tools</h2>
+
+            <!-- Secret Tools Gate -->
+            <div id="secretToolsGate" class="mb-8 p-6 bg-stone-100 rounded-xl border-4 border-stone-500 shadow-2xl">
+                <h3 class="text-2xl font-bold text-stone-700 mb-4">Special Access Required</h3>
+                <p class="text-gray-700 mb-3">Enter the Forbidden Passcode to unlock Advanced Utilities and the Cloak.</p>
+                <form id="secretPasscodeForm" onsubmit="enterSecretMode(event)">
+                    <label for="secretPasscodeInput" class="block text-sm font-medium text-gray-700 mb-1">Forbidden Passcode:</label>
+                    <div class="flex space-x-4">
+                        <input type="password" id="secretPasscodeInput" class="flex-grow p-3 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-stone-600 focus:border-stone-600 border border-gray-300" placeholder="Enter your secret passcode" required>
+                        <button type="submit" class="py-3 px-6 bg-stone-600 hover:bg-stone-700 text-white font-bold rounded-lg transition duration-200 shadow-md">Unlock Tools</button>
+                    </div>
+                    <p id="secretPasscodeError" class="text-red-600 text-center mt-4 hidden">Incorrect Forbidden Passcode.</p>
+                </form>
+            </div>
+
+            <!-- Secret Tools Panel (Hidden until unlocked) -->
+            <div id="secretToolsPanel" class="mb-8 p-6 bg-stone-100 rounded-xl border-4 border-green-500 shadow-2xl hidden">
+                <h3 class="text-2xl font-bold text-green-700 mb-4">Advanced Utilities (System Tools)</h3>
+                <div class="text-gray-700 space-y-6">
+                    
+                    <!-- NEW: Cloak Utility -->
+                    <div class="pb-6 border-b border-stone-400">
+                        <h4 class="text-xl font-bold text-green-600 mb-3">Project Cloak Utility (Stealth Mode)</h4>
+                        <p class="text-sm text-gray-600 mb-4">Hides the current project's title next to the fullscreen button, making it look like a generic system status.</p>
+                        <button id="stealthModeButton" onclick="toggleStealthMode()" class="w-full py-3 px-6 bg-stone-600 text-white font-bold rounded-lg hover:bg-stone-700 transition duration-200">
+                            Activate Stealth Mode (Title Cloak)
+                        </button>
+                    </div>
+
+                    <!-- URL Health Checker -->
+                    <div class="py-4 border-b border-stone-400">
+                        <h4 class="text-xl font-bold text-green-600 mb-3">URL Health Checker (Mock)</h4>
+                        <p class="text-sm text-gray-600 mb-2">Simulates checking a remote URL's connection status.</p>
+                        <label for="urlChecker" class="block text-sm font-medium text-gray-700 mb-1">Target URL:</label>
+                        <input type="url" id="urlChecker" class="w-full p-3 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-green-600 focus:border-green-600 border border-gray-300" placeholder="https://external-service.com" required>
+                        <button onclick="checkUrlStatus()" class="mt-3 py-2 px-4 bg-green-700 text-white font-bold rounded-lg hover:bg-green-800 transition duration-200 shadow-md">Test Connection</button>
+                        <p id="checkResult" class="mt-4 font-bold text-lg text-green-700"></p>
+                    </div>
+
+                    <!-- Passcode Manager (NEW) -->
+                    <div class="pt-4">
+                        <h4 class="text-xl font-bold text-green-600 mb-3">Passcode Manager (Mock)</h4>
+                        <p class="text-sm text-gray-600 mb-2">Analyze security and generate temporary access keys.</p>
+
+                        <!-- Security Rating -->
+                        <div class="mb-4 bg-stone-200 p-3 rounded-lg border border-stone-300">
+                            <p class="font-medium text-gray-800">Hub Passcode Security Rating: <span id="securityRating" class="font-bold"></span></p>
+                        </div>
+
+                        <!-- Temp Code Generator -->
+                        <button onclick="generateTempCode()" class="w-full py-3 px-6 bg-green-700 text-white font-bold rounded-lg hover:bg-green-800 transition duration-200 shadow-md">
+                            Generate Temporary Access Code
+                        </button>
+                        <p id="tempCodeOutput" class="mt-3 font-mono text-center text-lg text-gray-800 hidden"></p>
+                        <p id="tempCodeTimer" class="mt-1 text-center text-sm text-red-600 hidden"></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- --- NEW: DEV VIEW --- -->
+        <div id="devView" class="hidden">
+            <div class="p-8 bg-stone-100 rounded-xl shadow-2xl border-4 border-stone-400">
+                <h2 class="text-4xl font-extrabold text-stone-700 mb-6 border-b border-stone-500 pb-2">
+                    Development & Integrity Check
+                </h2>
+                <div class="text-center py-10">
+                    <p class="text-6xl mb-4">🏆</p>
+                    <h3 class="text-3xl font-bold text-gray-900 mb-2">Developed By: Rylan Burns</h3>
+                    <p class="text-xl text-gray-700 mb-6">
+                        This entire Project Hub is a <strong class="text-stone-700">solo creation</strong>.
+                    </p>
+                    <p class="text-lg text-gray-600 italic">
+                        Rylan Burns is the sole designer, coder, and custodian of this vault.
+                    </p>
+                </div>
+                <div class="text-right text-sm text-gray-500 mt-6 pt-4 border-t border-stone-300">
+                    Vault Version 1.0.1
+                </div>
             </div>
         </div>
         
-        <!-- Project Management Panel (NOW STANDARD ACCESS) -->
-        <div id="managementPanel" class="mb-8 p-6 bg-gray-800 rounded-xl border-4 border-violet-600 shadow-2xl">
-            <h2 class="text-2xl font-bold text-violet-400 mb-4">Project Management Panel</h2>
-            <form id="addProjectForm">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <!-- Name Input -->
-                    <div class="md:col-span-1">
-                        <label for="projectName" class="block text-sm font-medium text-gray-300 mb-1">Project Title</label>
-                        <input type="text" id="projectName" class="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-violet-500 focus:border-violet-500 border border-gray-600" placeholder="e.g., Cool Web Game" required>
-                    </div>
-
-                    <!-- URL Input -->
-                    <div class="md:col-span-2">
-                        <label for="projectUrl" class="block text-sm font-medium text-gray-300 mb-1">Project URL (Must start with http:// or https://)</label>
-                        <input type="url" id="projectUrl" class="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-violet-500 focus:border-violet-500 border border-gray-600" placeholder="e.g., https://cool-project.com" required>
-                    </div>
-
-                    <!-- Description Input -->
-                    <div class="md:col-span-3">
-                        <label for="projectDescription" class="block text-sm font-medium text-gray-300 mb-1">Description (What is it?)</label>
-                        <textarea id="projectDescription" rows="2" class="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-violet-500 focus:border-violet-500 border border-gray-600" placeholder="A brief summary of what the project does." required></textarea>
-                    </div>
+        <!-- --- NEW: CHAT VIEW --- -->
+        <div id="chatView" class="hidden">
+            <div class="flex flex-col h-[70vh] bg-stone-100 rounded-xl shadow-2xl border-4 border-stone-400 p-4">
+                <h2 class="text-3xl font-bold text-stone-700 mb-4 border-b border-stone-400 pb-2">
+                    Community Chat 💬
+                </h2>
+                
+                <!-- Display User ID -->
+                <div class="mb-3 p-2 bg-stone-200 rounded-lg text-sm text-gray-600">
+                    Your unique ID for this chat: <strong id="currentUserIdDisplay" class="font-mono text-stone-800 break-all">Authenticating...</strong>
                 </div>
 
-                <div class="mt-6">
-                    <button type="submit" id="addProjectButton" class="w-full py-3 bg-violet-600 text-white font-bold rounded-lg transition duration-200 shadow-lg hover:bg-violet-700">
-                        Add Project to Hub
-                    </button>
+                <!-- Messages Area -->
+                <div id="messagesContainer" class="flex-grow overflow-y-auto space-y-3 p-3 bg-white rounded-lg shadow-inner mb-4">
+                    <p class="text-center text-gray-500 italic" id="chatLoading">Connecting to real-time chat...</p>
+                    <!-- Messages will be rendered here -->
                 </div>
-            </form>
-        </div>
-        
-        <!-- Secret Tools Gate -->
-        <div id="secretToolsGate" class="mb-8 p-6 bg-gray-800 rounded-xl border-4 border-yellow-500 shadow-2xl">
-            <h2 class="text-2xl font-bold text-yellow-400 mb-4">Special Access Required</h2>
-            <p class="text-gray-300 mb-3">Enter the Secret Passcode to unlock Advanced Utilities (e.g., Proxy/Tools).</p>
-            <form id="secretPasscodeForm" onsubmit="enterSecretMode(event)">
-                <label for="secretPasscodeInput" class="block text-sm font-medium text-gray-300 mb-1">Secret Passcode:</label>
-                <div class="flex space-x-4">
-                    <input type="password" id="secretPasscodeInput" class="flex-grow p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-yellow-500 focus:border-yellow-500 border border-gray-600" placeholder="Enter your secret passcode" required>
-                    <button type="submit" class="py-3 px-6 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-lg transition duration-200 shadow-md">Unlock Tools</button>
-                </div>
-                <p id="secretPasscodeError" class="text-red-400 text-center mt-4 hidden">Incorrect Secret Passcode.</p>
-            </form>
-        </div>
 
-        <!-- Secret Tools Panel (Hidden until unlocked) -->
-        <div id="secretToolsPanel" class="mb-8 p-6 bg-gray-800 rounded-xl border-4 border-green-500 shadow-2xl hidden">
-            <h2 class="text-2xl font-bold text-green-400 mb-4">Advanced Utilities (Secret Tools)</h2>
-            <div class="text-gray-300">
-                <p class="mb-3">This panel is typically reserved for powerful system tools. Since actual proxy settings aren't possible here, here's a placeholder utility:</p>
-                <label for="urlChecker" class="block text-sm font-medium text-gray-300 mb-1">URL Health Checker (Mock Proxy Test):</label>
-                <input type="url" id="urlChecker" class="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-green-500 focus:border-green-500 border border-gray-600" placeholder="https://external-service.com" required>
-                <button onclick="checkUrlStatus()" class="mt-3 py-2 px-4 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition duration-200">Test Connection</button>
-                <p id="checkResult" class="mt-4 font-bold text-lg text-green-300"></p>
+                <!-- Message Input Form -->
+                <form id="chatForm" onsubmit="sendMessage(event)">
+                    <div class="flex space-x-3">
+                        <input type="text" id="messageInput" class="flex-grow p-3 rounded-lg bg-white text-gray-900 border border-gray-300 focus:ring-stone-600 focus:border-stone-600" placeholder="Type your message here..." required>
+                        <button type="submit" class="py-3 px-6 bg-stone-600 text-white font-bold rounded-lg shadow-lg hover:bg-stone-700 transition duration-200">
+                            Send
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 
-        <!-- Projects List Area -->
-        <h2 class="text-3xl font-bold text-white mb-4">Your Project Library</h2>
-        <div id="projectsList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <!-- Project Cards will be inserted here -->
-            <p id="loadingIndicator" class="text-gray-400 col-span-full">Loading your projects...</p>
-        </div>
     </div>
 
     <!-- Fullscreen Modal -->
     <div id="fullscreenModal" class="hidden fullscreen-player-container">
-        <div class="p-3 flex justify-between items-center bg-gray-900 border-b border-gray-700 shadow-lg">
+        <div class="p-3 flex justify-between items-center bg-stone-800 border-b border-stone-700 shadow-lg">
             <h3 id="fullscreenTitle" class="text-xl font-bold text-white"></h3>
             <!-- Updated the onclick to call the new, non-conflicting function -->
-            <button onclick="closeFullscreenModal()" class="p-2 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition duration-200" title="Exit Fullscreen">
+            <button onclick="closeFullscreenModal()" class="p-2 bg-stone-600 text-white rounded-lg shadow-md hover:bg-stone-700 transition duration-200" title="Exit Fullscreen">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
@@ -184,11 +351,36 @@
 
     <!-- Local Storage and App Logic -->
     <script type="module">
+        // --- Firebase Imports ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, collection, addDoc, query, orderBy, limit, serverTimestamp, 
+            onSnapshot, setLogLevel 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // setLogLevel('debug'); // Uncomment for detailed Firebase logs
+
         // --- Configuration and State ---
         const HUB_PASSCODE = '0311'; // For initial hub access
         const ADMIN_PASSCODE = '994494'; // For secret tools access
         const LOCAL_STORAGE_KEY = 'project_hub_projects_local';
         let projects = []; // Local array to hold all projects
+
+        let isStealthMode = false;
+        let isSecretModeUnlocked = false; // NEW state for Admin unlock
+        let activeView = 'hub'; 
+        let originalTitle = 'No project loaded';
+        
+        // NEW: Filter/Search State
+        let currentSearchTerm = '';
+        let activeTags = []; 
+        let tempCodeTimerInterval; // For Admin Panel countdown
+
+        // NEW: Firebase State
+        let db, auth, app;
+        let currentUserId = null;
+        let isAuthReady = false;
 
         // --- DOM Elements ---
         const authScreen = document.getElementById('authScreen');
@@ -198,11 +390,82 @@
         const projectsList = document.getElementById('projectsList');
         const projectPlayer = document.getElementById('projectPlayer');
         const currentProjectTitle = document.getElementById('currentProjectTitle');
+        const tagFilterContainer = document.getElementById('tagFilterContainer');
         
-        // Secret Tools Gate Elements
+        // Navigation Elements
+        const hubNavButton = document.getElementById('hubNavButton');
+        const adminNavButton = document.getElementById('adminNavButton');
+        const devNavButton = document.getElementById('devNavButton'); 
+        const chatNavButton = document.getElementById('chatNavButton'); // NEW
+        const adminLockIcon = document.getElementById('adminLockIcon');
+        
+        // View Containers
+        const hubView = document.getElementById('hubView');
+        const adminView = document.getElementById('adminView');
+        const devView = document.getElementById('devView'); 
+        const chatView = document.getElementById('chatView'); // NEW
+
+        // Admin Panel Elements
         const secretToolsGate = document.getElementById('secretToolsGate');
         const secretToolsPanel = document.getElementById('secretToolsPanel');
         const secretPasscodeError = document.getElementById('secretPasscodeError');
+        const securityRating = document.getElementById('securityRating');
+        const tempCodeOutput = document.getElementById('tempCodeOutput');
+        const tempCodeTimer = document.getElementById('tempCodeTimer');
+
+        // Chat Elements
+        const messagesContainer = document.getElementById('messagesContainer');
+        const chatForm = document.getElementById('chatForm');
+        const messageInput = document.getElementById('messageInput');
+        const currentUserIdDisplay = document.getElementById('currentUserIdDisplay');
+
+        // --- Firebase Setup ---
+
+        const initializeFirebase = async () => {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+            if (Object.keys(firebaseConfig).length === 0) {
+                console.error("Firebase config is missing. Cannot initialize Firestore.");
+                return;
+            }
+
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
+            // Set up authentication state listener
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    currentUserIdDisplay.textContent = currentUserId;
+                    setupChat(); // Start listening to chat once authenticated
+                } else {
+                    currentUserId = null;
+                    currentUserIdDisplay.textContent = 'Sign-in failed.';
+                }
+                isAuthReady = true;
+                // Since this runs after auth, we can now initialize the rest of the app logic
+                projects = loadProjectsFromLocalStorage();
+                renderProjects();
+                if (securityRating) { updateSecurityRatingUI(); }
+                switchView('hub'); 
+            });
+
+            try {
+                // Try signing in with the provided custom token first
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    // Fallback to anonymous sign-in
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Firebase Authentication Error:", error);
+                await signInAnonymously(auth); // Ensure we fall back to anonymous if custom token fails
+            }
+        };
 
         // --- Local Storage Operations ---
 
@@ -216,7 +479,6 @@
                 return stored ? JSON.parse(stored) : [];
             } catch (error) {
                 console.error("Error loading from local storage:", error);
-                // Return empty array on failure
                 return []; 
             }
         };
@@ -235,15 +497,11 @@
 
         // --- Core App Initialization and Authentication ---
 
-        const initializeApp = () => {
-            projects = loadProjectsFromLocalStorage();
-            renderProjects();
-            
-            // Project Management Panel is now unlocked by default
-            
-            // Ensure Secret Tools Gate is ready
-            secretToolsGate.classList.remove('hidden');
-            secretToolsPanel.classList.add('hidden');
+        // RENAMED TO AVOID CONFLICT with Firebase's initializeApp
+        const initLocalAppLogic = () => { 
+            // Note: Project loading and view switching is now handled inside onAuthStateChanged
+            // We just need to start the Firebase initialization here.
+            initializeFirebase();
         };
         
         // Passcode Handler (for HUB access)
@@ -255,7 +513,7 @@
                 setTimeout(() => {
                     authScreen.classList.add('hidden');
                     appContainer.classList.remove('hidden');
-                    initializeApp(); // Start the app initialization
+                    initLocalAppLogic(); // CALLING THE RENAMED FUNCTION
                 }, 300);
             } else {
                 passcodeError.classList.remove('hidden');
@@ -268,16 +526,129 @@
             event.preventDefault();
             const input = document.getElementById('secretPasscodeInput').value;
             if (input === ADMIN_PASSCODE) {
+                isSecretModeUnlocked = true; // Set state
+                
+                // Update UI
                 secretToolsGate.classList.add('hidden'); // Hide the gate
                 secretToolsPanel.classList.remove('hidden'); // Show the panel
-                showStatus('Secret Tools Panel Unlocked!', 'bg-green-600');
+                adminNavButton.classList.add('text-green-700'); // Optional: green highlight
+                adminLockIcon.textContent = ''; // Remove lock icon
+                
+                showStatus('Forbidden Tools Unlocked!', 'bg-green-700');
+                
             } else {
                 secretPasscodeError.classList.remove('hidden');
                 setTimeout(() => secretPasscodeError.classList.add('hidden'), 2000);
             }
         };
+
+        // --- View Switching Logic ---
+        window.switchView = (viewName) => {
+            activeView = viewName;
+            
+            // Reset button active states
+            hubNavButton.classList.remove('active');
+            adminNavButton.classList.remove('active');
+            devNavButton.classList.remove('active'); 
+            chatNavButton.classList.remove('active'); // NEW
+
+            // Hide all views
+            hubView.classList.add('hidden');
+            adminView.classList.add('hidden');
+            devView.classList.add('hidden'); 
+            chatView.classList.add('hidden'); // NEW
+
+            // Toggle selected view
+            if (activeView === 'hub') {
+                hubView.classList.remove('hidden');
+                hubNavButton.classList.add('active');
+            } else if (activeView === 'admin') {
+                adminView.classList.remove('hidden');
+                adminNavButton.classList.add('active');
+
+                // If admin is unlocked, hide the gate and show the panel
+                if (isSecretModeUnlocked) {
+                    secretToolsGate.classList.add('hidden');
+                    secretToolsPanel.classList.remove('hidden');
+                    // Ensure rating is updated when panel is viewed
+                    updateSecurityRatingUI(); 
+                } else {
+                    // If locked, show only the gate
+                    secretToolsGate.classList.remove('hidden');
+                    secretToolsPanel.classList.add('hidden');
+                }
+            } else if (activeView === 'dev') { 
+                devView.classList.remove('hidden');
+                devNavButton.classList.add('active');
+            } else if (activeView === 'chat') { // NEW Case
+                chatView.classList.remove('hidden');
+                chatNavButton.classList.add('active');
+                // Ensure chat setup runs (it's safe to call multiple times)
+                if(isAuthReady) setupChat(); 
+            }
+        };
+
+
+        // --- Admin Panel Utility Functions ---
         
-        // Mock function for the Secret Tools Panel
+        /**
+         * Determines a mock security rating based on passcode length.
+         */
+        const getPasscodeSecurityRating = (passcode) => {
+            const len = passcode.length;
+            if (len >= 8) return { rating: "Excellent", color: "text-green-600" };
+            if (len >= 6) return { rating: "Strong", color: "text-yellow-600" };
+            if (len >= 4) return { rating: "Fair", color: "text-orange-600" };
+            return { rating: "Weak", color: "text-red-600" };
+        };
+
+        /**
+         * Updates the UI with the Hub Passcode Security Rating.
+         */
+        const updateSecurityRatingUI = () => {
+            const { rating, color } = getPasscodeSecurityRating(HUB_PASSCODE);
+            securityRating.textContent = rating;
+            securityRating.className = `font-bold ${color}`;
+        };
+
+        /**
+         * Generates a mock temporary 6-digit access code that expires after 60 seconds.
+         */
+        window.generateTempCode = () => {
+            // Clear previous timer if running
+            clearInterval(tempCodeTimerInterval);
+            
+            // Generate 6-digit code
+            const tempCode = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            tempCodeOutput.textContent = `🔑 Temporary Code: ${tempCode}`;
+            tempCodeOutput.classList.remove('hidden');
+
+            let timeLeft = 60;
+            tempCodeTimer.textContent = `Expires in ${timeLeft} seconds.`;
+            tempCodeTimer.classList.remove('hidden');
+            
+            showStatus('Temporary Access Code Generated!', 'bg-green-700');
+
+            tempCodeTimerInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(tempCodeTimerInterval);
+                    tempCodeOutput.textContent = '❌ Code Expired';
+                    tempCodeTimer.classList.add('hidden');
+                    tempCodeOutput.classList.add('text-red-600');
+                    showStatus('Temporary code expired.', 'bg-red-600');
+                    setTimeout(() => {
+                        tempCodeOutput.classList.add('hidden');
+                        tempCodeOutput.classList.remove('text-red-600');
+                    }, 2000);
+                } else {
+                    tempCodeTimer.textContent = `Expires in ${timeLeft} seconds.`;
+                }
+            }, 1000);
+        };
+
+        // Mock function for the URL Health Checker
         window.checkUrlStatus = () => {
             const urlInput = document.getElementById('urlChecker');
             const resultElement = document.getElementById('checkResult');
@@ -285,51 +656,157 @@
 
             if (!url) {
                 resultElement.textContent = 'Please enter a URL to check.';
-                resultElement.classList.remove('text-green-300', 'text-yellow-300', 'text-green-400');
-                resultElement.classList.add('text-red-400');
+                resultElement.classList.remove('text-green-700', 'text-red-600', 'text-yellow-600');
+                resultElement.classList.add('text-red-600');
                 return;
             }
 
-            resultElement.classList.remove('text-red-400', 'text-green-400');
-            resultElement.classList.add('text-yellow-300');
+            resultElement.classList.remove('text-red-600', 'text-green-700');
+            resultElement.classList.add('text-yellow-600');
             resultElement.textContent = `Checking connection status for ${url}...`;
 
             setTimeout(() => {
-                // Mock result - simulates a quick check
                 const status = Math.random() > 0.3 ? 'online' : 'blocked';
 
                 if (status === 'online') {
                     resultElement.textContent = `✅ Success! Connection to ${url} is ONLINE (Mock Check).`;
-                    resultElement.classList.remove('text-yellow-300');
-                    resultElement.classList.add('text-green-400');
+                    resultElement.classList.remove('text-yellow-600');
+                    resultElement.classList.add('text-green-700');
                 } else {
                     resultElement.textContent = `🚫 Warning: Connection to ${url} seems BLOCKED or slow (Mock Check).`;
-                    resultElement.classList.remove('text-green-400');
-                    resultElement.classList.add('text-yellow-300');
+                    resultElement.classList.remove('text-green-700');
+                    resultElement.classList.add('text-yellow-600');
                 }
             }, 1500);
         };
 
+        // Stealth Mode (Cloaking) Feature
+        window.toggleStealthMode = () => {
+            const button = document.getElementById('stealthModeButton');
+            
+            if (!isStealthMode) {
+                isStealthMode = true;
+                originalTitle = currentProjectTitle.textContent;
+                currentProjectTitle.textContent = 'System Status: OK (Stealth)';
+                
+                button.textContent = 'Deactivate Stealth Mode (Restore Title)';
+                button.classList.remove('bg-stone-600', 'hover:bg-stone-700');
+                button.classList.add('bg-stone-800', 'hover:bg-stone-900');
+
+                showStatus('Stealth Mode Activated. Project title is now cloaked.', 'bg-stone-800');
+            } else {
+                isStealthMode = false;
+                currentProjectTitle.textContent = originalTitle;
+                
+                button.textContent = 'Activate Stealth Mode (Title Cloak)';
+                button.classList.remove('bg-stone-800', 'hover:bg-stone-900');
+                button.classList.add('bg-stone-600', 'hover:bg-stone-700');
+                
+                showStatus('Stealth Mode Deactivated. Project title restored.', 'bg-green-700');
+            }
+        };
+
+
+        // --- Filtering and Searching Logic (NEW) ---
+        
+        /**
+         * Updates the search term and re-renders projects.
+         */
+        window.handleSearch = () => {
+            currentSearchTerm = document.getElementById('searchBar').value.toLowerCase().trim();
+            renderProjects();
+        };
+
+        /**
+         * Toggles a tag in the activeTags array and re-renders projects.
+         */
+        window.handleTagFilter = (clickedTag) => {
+            const index = activeTags.indexOf(clickedTag);
+            if (index > -1) {
+                activeTags.splice(index, 1); // Remove tag
+            } else {
+                activeTags.push(clickedTag); // Add tag
+            }
+            renderProjects();
+        };
 
         // --- Project Management Functions ---
 
         /**
-         * Renders the project list based on the local 'projects' array.
+         * Renders the project list based on filters and search, and renders the filter buttons.
          */
         const renderProjects = () => {
-            // Clearing the innerHTML of projectsList removes the loadingIndicator element.
+            // 1. Apply Filtering and Searching
+            let filteredProjects = projects.filter(project => {
+                // Search Filter
+                const searchMatch = !currentSearchTerm || 
+                                    project.name.toLowerCase().includes(currentSearchTerm) || 
+                                    project.description.toLowerCase().includes(currentSearchTerm);
+
+                // Tag Filter (must include ALL active tags)
+                const projectTagsArray = project.tags ? project.tags.split(',').map(tag => tag.trim()) : [];
+                const tagMatch = activeTags.length === 0 || 
+                                 activeTags.every(tag => projectTagsArray.includes(tag));
+
+                return searchMatch && tagMatch;
+            });
+
             projectsList.innerHTML = ''; 
             
-            if (projects.length === 0) {
-                // Since the projectsList was cleared, we insert the "No projects yet" message.
-                projectsList.innerHTML = '<p class="text-gray-400 col-span-full">No projects yet. Add one above!</p>';
-                return;
+            if (filteredProjects.length === 0) {
+                projectsList.innerHTML = '<p class="text-gray-700 col-span-full">No projects match the current search or filters.</p>';
+            } else {
+                filteredProjects.forEach(project => renderProjectCard(project));
+                attachEventListeners();
             }
-            
-            projects.forEach(project => renderProjectCard(project));
-            attachEventListeners();
-            // If projects exist, the loop above inserts the cards, replacing the loading state.
+
+            // 2. Render the clickable tag buttons
+            renderFilterButtons();
         };
+
+        /**
+         * Renders all unique tag buttons available from all projects.
+         */
+        const renderFilterButtons = () => {
+            const allTags = new Set();
+            projects.forEach(p => {
+                if (p.tags) {
+                    p.tags.split(',').forEach(tag => {
+                        const trimmedTag = tag.trim();
+                        if (trimmedTag) allTags.add(trimmedTag);
+                    });
+                }
+            });
+
+            tagFilterContainer.innerHTML = '';
+            
+            // Add a "Show All" button
+            const allButtonClass = activeTags.length === 0 ? 'bg-stone-700 text-white' : 'bg-stone-200 text-stone-700 hover:bg-stone-300';
+            tagFilterContainer.innerHTML += `
+                <span class="tag-chip text-sm font-medium px-3 py-1 rounded-full cursor-pointer ${allButtonClass}" onclick="clearFilters()">Show All (${projects.length})</span>
+            `;
+
+            Array.from(allTags).sort().forEach(tag => {
+                const isActive = activeTags.includes(tag) ? 'bg-stone-700 text-white' : 'bg-stone-200 text-stone-700 hover:bg-stone-300';
+                const count = projects.filter(p => p.tags && p.tags.split(',').map(t => t.trim()).includes(tag)).length;
+                
+                tagFilterContainer.innerHTML += `
+                    <span class="tag-chip text-sm font-medium px-2 py-1 rounded-full cursor-pointer ${isActive}" onclick="handleTagFilter('${tag}')">#${tag} (${count})</span>
+                `;
+            });
+
+            if (allTags.size === 0) {
+                tagFilterContainer.innerHTML = '<span class="text-gray-600 text-sm italic py-1">No tags available. Add tags to your projects above!</span>';
+            }
+        };
+
+        window.clearFilters = () => {
+            activeTags = [];
+            document.getElementById('searchBar').value = '';
+            currentSearchTerm = '';
+            renderProjects();
+        };
+
 
         // Add Project Function (Attached to form submit)
         const addProjectForm = document.getElementById('addProjectForm');
@@ -339,8 +816,9 @@
             const nameInput = document.getElementById('projectName');
             const urlInput = document.getElementById('projectUrl');
             const descInput = document.getElementById('projectDescription');
+            const iconInput = document.getElementById('projectIcon'); 
+            const tagsInput = document.getElementById('projectTags'); 
 
-            // Simple unique ID generation (using Date.now() as a fallback for crypto.randomUUID)
             const newId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString();
 
             const newProject = {
@@ -348,6 +826,8 @@
                 name: nameInput.value.trim(),
                 url: urlInput.value.trim(),
                 description: descInput.value.trim(),
+                icon: iconInput.value.trim() || '📂', // Default icon
+                tags: tagsInput.value.toLowerCase().trim(), // Lowercase tags for easy filtering
                 createdAt: new Date().toISOString()
             };
 
@@ -355,26 +835,25 @@
             saveProjectsToLocalStorage();
             renderProjects();
 
-            showStatus(`Project "${newProject.name}" added successfully!`, 'bg-violet-600');
+            showStatus(`Project "${newProject.name}" added successfully to the Library!`, 'bg-stone-800');
 
             // Clear form
             nameInput.value = '';
             urlInput.value = '';
             descInput.value = '';
+            iconInput.value = ''; 
+            tagsInput.value = ''; 
         });
 
         // Delete Project Function
         window.deleteProject = (projectId) => {
-            // Deletion is now allowed as the Management Panel is unlocked by default
-            
-            // Filter out the project to be deleted
             const initialLength = projects.length;
             projects = projects.filter(p => p.id !== projectId);
             
             if (projects.length < initialLength) {
                 saveProjectsToLocalStorage();
                 renderProjects();
-                showStatus(`Project deleted successfully!`, 'bg-violet-600');
+                showStatus(`Project deleted successfully!`, 'bg-stone-800');
             } else {
                 showStatus(`Error: Project not found!`, 'bg-red-600');
             }
@@ -392,17 +871,35 @@
         }
 
         const renderProjectCard = (project) => {
+            const iconDisplay = project.icon ? `<span class="mr-2 text-2xl">${project.icon}</span>` : '';
+            
+            const tagsHtml = project.tags.split(',').map(tag => {
+                const trimmedTag = tag.trim();
+                if (!trimmedTag) return '';
+                const isActive = activeTags.includes(trimmedTag) ? 'bg-stone-700 text-white' : 'bg-stone-200 text-stone-700 hover:bg-stone-300';
+                
+                return `<span class="tag-chip text-xs font-medium px-2 py-1 rounded-full cursor-pointer ${isActive}" onclick="handleTagFilter('${trimmedTag}')">#${trimmedTag}</span>`;
+            }).join(' ');
+
             const cardHtml = `
-                <div class="bg-gray-700 p-4 rounded-xl shadow-lg border border-gray-600 flex flex-col justify-between hover:shadow-violet-500/50 transition duration-300">
+                <div class="bg-white p-4 rounded-xl shadow-lg border border-gray-300 flex flex-col justify-between hover:shadow-stone-400/50 transition duration-300">
                     <div>
-                        <h3 class="text-xl font-extrabold text-white truncate mb-1" title="${project.name}">${project.name}</h3>
-                        <p class="text-gray-400 text-sm italic mb-3 line-clamp-2">${project.description}</p>
+                        <div class="flex items-center mb-1">
+                            ${iconDisplay}
+                            <h3 class="text-xl font-extrabold text-gray-900 truncate" title="${project.name}">${project.name}</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm italic mb-3 line-clamp-2">${project.description}</p>
+                    </div>
+                    <div class="mb-3">
+                        <div class="flex flex-wrap gap-1">
+                            ${tagsHtml}
+                        </div>
                     </div>
                     <div class="flex space-x-2 mt-auto">
-                        <button class="launch-btn flex-grow py-2 px-3 bg-violet-600 text-white font-semibold rounded-lg shadow-md hover:bg-violet-700 transition duration-200" data-url="${project.url}" data-title="${project.name}">
+                        <button class="launch-btn flex-grow py-2 px-3 bg-stone-600 text-white font-semibold rounded-lg shadow-md hover:bg-stone-700 transition duration-200" data-url="${project.url}" data-title="${project.name}">
                             Launch Project 🚀
                         </button>
-                        <button onclick="deleteProject('${project.id}')" class="p-2 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition duration-200" title="Delete Project">
+                        <button onclick="deleteProject('${project.id}')" class="p-2 bg-stone-500 text-white rounded-lg shadow-md hover:bg-stone-600 transition duration-200" title="Delete Project">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
@@ -412,7 +909,6 @@
         };
 
         const attachEventListeners = () => {
-            // Re-attach launch listeners after every render
             document.querySelectorAll('.launch-btn').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const url = e.currentTarget.getAttribute('data-url');
@@ -429,7 +925,13 @@
                 return;
             }
             projectPlayer.src = url;
-            currentProjectTitle.textContent = title;
+            
+            if (isStealthMode) {
+                originalTitle = title;
+                showStatus(`Project loaded under Stealth Mode. Title is cloaked.`, 'bg-stone-800');
+            } else {
+                currentProjectTitle.textContent = title;
+            }
         };
 
         // --- Fullscreen Feature ---
@@ -440,7 +942,7 @@
 
         window.toggleFullscreen = () => {
             const currentUrl = projectPlayer.src;
-            const currentTitle = currentProjectTitle.textContent;
+            const currentTitle = isStealthMode ? originalTitle : currentProjectTitle.textContent;
 
             if (currentUrl === 'about:blank' || currentTitle === 'No project loaded') {
                 showStatus("Please launch a project first!", 'bg-red-600');
@@ -452,11 +954,124 @@
             fullscreenModal.classList.remove('hidden');
         };
 
-        // Custom function to close the modal, renamed to avoid conflict with native document.exitFullscreen()
         window.closeFullscreenModal = () => {
             fullscreenModal.classList.add('hidden');
-            fullscreenPlayer.src = 'about:blank'; // Clear the modal iframe
+            fullscreenPlayer.src = 'about:blank'; 
         };
+        
+        // --- CHAT LOGIC (Firebase Real-Time) ---
+
+        const getChatCollectionRef = () => {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            // Public path for collaborative data: /artifacts/{appId}/public/data/{your_collection_name}
+            return collection(db, `artifacts/${appId}/public/data/chat_messages`);
+        }
+
+        let chatUnsubscribe = null;
+
+        const setupChat = () => {
+            if (!db || chatUnsubscribe) return; // Only set up once
+            
+            const messagesQuery = query(
+                getChatCollectionRef(),
+                orderBy('timestamp', 'desc'), // Sort by newest first
+                limit(50) // Limit to the last 50 messages
+            );
+
+            // Real-time listener
+            chatUnsubscribe = onSnapshot(messagesQuery, (snapshot) => {
+                const messages = [];
+                snapshot.forEach(doc => {
+                    messages.push(doc.data());
+                });
+                renderMessages(messages.reverse()); // Reverse back to chronological order
+            }, (error) => {
+                console.error("Chat Listener Error:", error);
+                messagesContainer.innerHTML = `<p class="text-center text-red-600 italic">Error connecting to chat: ${error.message}</p>`;
+            });
+        };
+
+        const renderMessages = (messages) => {
+            messagesContainer.innerHTML = ''; // Clear existing messages
+            const chatLoading = document.getElementById('chatLoading');
+            if(chatLoading) chatLoading.remove();
+
+            if (messages.length === 0) {
+                messagesContainer.innerHTML = '<p class="text-center text-gray-500 italic">The conversation is empty. Say hello!</p>';
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+
+            messages.forEach(msg => {
+                const isMine = msg.userId === currentUserId;
+                const alignment = isMine ? 'justify-end' : 'justify-start';
+                const bgColor = isMine ? 'bg-stone-500 text-white' : 'bg-gray-200 text-gray-800';
+                
+                // Format timestamp
+                let timeString = '';
+                if (msg.timestamp && msg.timestamp.toDate) {
+                    const date = msg.timestamp.toDate();
+                    timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `flex ${alignment}`;
+                messageDiv.innerHTML = `
+                    <div class="max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-xl shadow ${bgColor}">
+                        <div class="font-bold text-sm mb-1 ${isMine ? 'text-white/80' : 'text-stone-700'}">
+                            ${msg.username} 
+                            ${isMine ? '<span class="text-xs font-normal">(You)</span>' : ''}
+                        </div>
+                        <p class="whitespace-pre-wrap">${msg.text}</p>
+                        <span class="block text-right mt-1 text-xs ${isMine ? 'text-white/60' : 'text-gray-500'}">${timeString}</span>
+                    </div>
+                `;
+                fragment.appendChild(messageDiv);
+            });
+
+            messagesContainer.appendChild(fragment);
+            // Auto-scroll to the bottom of the messages
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        };
+
+        const getDisplayName = (id) => {
+            // Use the last 4 characters of the ID for a simple, readable name
+            const shortId = id ? id.substring(id.length - 4) : '####';
+            return `User-${shortId}`;
+        }
+
+        window.sendMessage = async (event) => {
+            event.preventDefault();
+
+            if (!currentUserId || !db) {
+                showStatus("Error: Not authenticated. Cannot send message.", 'bg-red-600');
+                return;
+            }
+            
+            const text = messageInput.value.trim();
+            if (text === '') return;
+
+            try {
+                await addDoc(getChatCollectionRef(), {
+                    userId: currentUserId,
+                    username: getDisplayName(currentUserId),
+                    text: text,
+                    timestamp: serverTimestamp() // Firestore server timestamp is best for reliable sorting
+                });
+
+                messageInput.value = ''; // Clear input on success
+            } catch (error) {
+                console.error("Error sending message:", error);
+                showStatus(`Failed to send message: ${error.message}`, 'bg-red-600');
+            }
+        };
+
+        // Check if authentication should be skipped on load (e.g., if already authenticated)
+        // If the user hasn't entered the initial passcode yet, the auth screen remains visible.
+        if (authScreen && authScreen.classList.contains('hidden')) {
+            initLocalAppLogic(); // Call the renamed function here too
+        }
 
     </script>
 </body>
