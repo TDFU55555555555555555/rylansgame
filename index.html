@@ -149,7 +149,7 @@
     <div id="fullscreenModal" class="hidden fullscreen-player-container">
         <div class="p-3 flex justify-between items-center bg-gray-900 border-b border-gray-700 shadow-lg">
             <h3 id="fullscreenTitle" class="text-xl font-bold text-white"></h3>
-            <button onclick="exitFullscreen()" class="p-2 rounded-full bg-red-600 text-white hover:bg-red-700 transition duration-200" title="Exit Fullscreen">
+            <button onclick="exitFullscreen()" class="p-2 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition duration-200" title="Exit Fullscreen">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
@@ -160,7 +160,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global Firebase and State Variables
         let db = null;
@@ -173,7 +173,12 @@
         const CORRECT_PASSCODE = '0311'; // CHANGED from '1234' to '0311'
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        
+        // FIX: Provide a default, valid Firebase configuration structure if the global config is missing.
+        const defaultFirebaseConfig = { projectId: 'default-app-project-id' };
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : defaultFirebaseConfig;
 
         // DOM Elements
         const authScreen = document.getElementById('authScreen');
@@ -222,7 +227,8 @@
 
             } catch (error) {
                 console.error("Firebase initialization failed:", error);
-                statusMessage.textContent = `CRITICAL ERROR: Failed to connect to database. Check console.`;
+                // Display the specific error message from the console to the user
+                statusMessage.textContent = `CRITICAL ERROR: Failed to connect to database: ${error.message}`;
                 statusMessage.classList.remove('hidden', 'bg-violet-800');
                 statusMessage.classList.add('bg-red-600');
             }
