@@ -174,8 +174,16 @@
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
         
-        // FIX: Provide a default, valid Firebase configuration structure if the global config is missing.
-        const defaultFirebaseConfig = { projectId: 'default-app-project-id' };
+        // FIX: Provide a complete default configuration structure with all required fields (including apiKey)
+        // This prevents 'projectId not provided' and 'auth/invalid-api-key' errors if the environment config is incomplete.
+        const defaultFirebaseConfig = { 
+            apiKey: 'placeholder-api-key', // Crucial fix for the auth/invalid-api-key error
+            authDomain: 'placeholder-auth-domain',
+            projectId: 'default-app-project-id', 
+            storageBucket: 'placeholder-storage-bucket',
+            messagingSenderId: 'placeholder-messaging-sender-id',
+            appId: 'placeholder-app-id'
+        };
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config) 
             : defaultFirebaseConfig;
